@@ -26,13 +26,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.syncJob = void 0;
 const node_cron_1 = __importDefault(require("node-cron"));
 const node_appwrite_1 = require("node-appwrite");
+const axios_1 = __importDefault(require("axios"));
+const image_schema_1 = __importDefault(require("./schemas/image.schema"));
 const syncJob = () => {
-    node_cron_1.default.schedule('* * * * *', () => {
-        syncAgency();
-    });
+    node_cron_1.default.schedule('* * * * *', () => __awaiter(void 0, void 0, void 0, function* () {
+        yield syncAgency();
+    }));
 };
 exports.syncJob = syncJob;
 const collections = [
+    "admin",
     "country",
     "town",
     "agency",
@@ -45,94 +48,153 @@ const collections = [
     "package",
     "payment",
     "entrance",
-    "exit",
     "delivery",
+    "exit",
+    "file",
+    "contact"
 ];
 const syncAgency = () => __awaiter(void 0, void 0, void 0, function* () {
-    const client = new node_appwrite_1.Client()
-        .setEndpoint(process.env.ENDPOINT || '') // Your Appwrite Endpoint
-        .setProject(process.env.PROJECT_ID || '') // Your project ID
-        .setKey(process.env.PROJECT_KEY || ''); // Your; 
-    const clientDatabases = new node_appwrite_1.Databases(client);
-    const clientDatabaseId = process.env.DB || "test";
-    const clientUsers = new node_appwrite_1.Users(client);
-    const master = new node_appwrite_1.Client()
-        .setEndpoint(process.env.MASTER_ENDPOINT || '') // Your Appwrite Endpoint
-        .setProject(process.env.MASTER_PROJECT_ID || '') // Your project ID
-        .setKey(process.env.MASTER_PROJECT_KEY || ''); // Your; 
-    const masterDatabases = new node_appwrite_1.Databases(master);
-    const masterDatabaseId = process.env.MASTER_DB || "test";
-    const masterUsers = new node_appwrite_1.Users(master);
-    //SYnc users
-    const remoteUsers = yield masterUsers.list();
-    const localUsers = yield clientUsers.list();
-    const promises = [];
-    if (!remoteUsers.total && !localUsers.total) {
-    }
-    else if (remoteUsers.total && !localUsers.total) {
-        remoteUsers.users.map((user) => __awaiter(void 0, void 0, void 0, function* () {
-            const { $id } = user, data = __rest(user, ["$id"]);
-            return yield promises.push(clientUsers.create($id, data.email, data.phone, "password", data.name));
-        }));
-        yield Promise.all(promises);
-    }
-    else if (!remoteUsers.total && localUsers.total) {
-        localUsers.users.map((user) => __awaiter(void 0, void 0, void 0, function* () {
-            const { $id } = user, data = __rest(user, ["$id"]);
-            return yield promises.push(masterUsers.create($id, data.email, data.phone, "password", data.name));
-        }));
-        yield Promise.all(promises);
-    }
-    else if (remoteUsers.total && localUsers.total) {
-        yield remoteUsers.users.map((user) => __awaiter(void 0, void 0, void 0, function* () {
-            const { $id } = user, data = __rest(user, ["$id"]);
-            const localUser = yield localUsers.users.find((user) => user["$id"] === $id);
-            if (!localUser) {
+    try {
+        const client = new node_appwrite_1.Client()
+            .setEndpoint(process.env.ENDPOINT || '') // Your Appwrite Endpoint
+            .setProject(process.env.PROJECT_ID || '') // Your project ID
+            .setKey(process.env.PROJECT_KEY || ''); // Your; 
+        const clientDatabases = new node_appwrite_1.Databases(client);
+        const clientDatabaseId = process.env.DB || "test";
+        const clientUsers = new node_appwrite_1.Users(client);
+        const master = new node_appwrite_1.Client()
+            .setEndpoint(process.env.MASTER_ENDPOINT || '') // Your Appwrite Endpoint
+            .setProject(process.env.MASTER_PROJECT_ID || '') // Your project ID
+            .setKey(process.env.MASTER_PROJECT_KEY || ''); // Your; 
+        const masterDatabases = new node_appwrite_1.Databases(master);
+        const masterDatabaseId = process.env.MASTER_DB || "test";
+        const masterUsers = new node_appwrite_1.Users(master);
+        //SYnc users
+        const remoteUsers = yield masterUsers.list();
+        const localUsers = yield clientUsers.list();
+        const promises = [];
+        if (!remoteUsers.total && !localUsers.total) {
+        }
+        else if (remoteUsers.total && !localUsers.total) {
+            remoteUsers.users.map((user) => __awaiter(void 0, void 0, void 0, function* () {
+                const { $id } = user, data = __rest(user, ["$id"]);
                 return yield promises.push(clientUsers.create($id, data.email, data.phone, "password", data.name));
-            }
-        }));
-        yield localUsers.users.map((user) => __awaiter(void 0, void 0, void 0, function* () {
-            const { $id } = user, data = __rest(user, ["$id"]);
-            const remoteUser = yield localUsers.users.find((user) => user["$id"] === $id);
-            if (!remoteUser) {
+            }));
+            yield Promise.all(promises);
+        }
+        else if (!remoteUsers.total && localUsers.total) {
+            localUsers.users.map((user) => __awaiter(void 0, void 0, void 0, function* () {
+                const { $id } = user, data = __rest(user, ["$id"]);
                 return yield promises.push(masterUsers.create($id, data.email, data.phone, "password", data.name));
-            }
-        }));
-    }
-    // Data Sync
-    const syncData = (collection) => __awaiter(void 0, void 0, void 0, function* () {
-        const localData = yield clientDatabases.listDocuments(clientDatabaseId, collection);
-        const remoteData = yield masterDatabases.listDocuments(masterDatabaseId, collection);
-        yield localData.documents.forEach((lItem) => __awaiter(void 0, void 0, void 0, function* () {
-            const rItem = remoteData.documents.find((rItem) => rItem["$id"] === lItem["$id"]);
-            if (rItem && rItem["syncedAt"] < lItem["syncedAt"]) {
-                console.log(collection, "elder on remote");
-                const { $id, $permissions, $collectionId, $databaseId } = lItem, data = __rest(lItem, ["$id", "$permissions", "$collectionId", "$databaseId"]);
-                yield masterDatabases.updateDocument(masterDatabaseId, collection, $id, data);
-            }
-            else if (rItem && rItem["syncedAt"] > lItem["syncedAt"]) {
-                console.log(collection, "Newer on remote");
+            }));
+            yield Promise.all(promises);
+        }
+        else if (remoteUsers.total && localUsers.total) {
+            yield remoteUsers.users.map((user) => __awaiter(void 0, void 0, void 0, function* () {
+                const { $id } = user, data = __rest(user, ["$id"]);
+                const localUser = yield localUsers.users.find((user) => user["$id"] === $id);
+                if (!localUser) {
+                    return yield promises.push(clientUsers.create($id, data.email, data.phone, "password", data.name));
+                }
+            }));
+            yield localUsers.users.map((user) => __awaiter(void 0, void 0, void 0, function* () {
+                const { $id } = user, data = __rest(user, ["$id"]);
+                const remoteUser = yield localUsers.users.find((user) => user["$id"] === $id);
+                if (!remoteUser) {
+                    return yield promises.push(masterUsers.create($id, data.email, data.phone, "password", data.name));
+                }
+            }));
+        }
+        // Data Sync
+        const syncData = (collection) => __awaiter(void 0, void 0, void 0, function* () {
+            const syncedFiles = collection === 'file';
+            const localData = yield clientDatabases.listDocuments(clientDatabaseId, collection);
+            const remoteData = yield masterDatabases.listDocuments(masterDatabaseId, collection);
+            yield localData.documents.forEach((lItem) => __awaiter(void 0, void 0, void 0, function* () {
+                const rItem = remoteData.documents.find((rItem) => rItem["$id"] === lItem["$id"]);
+                // delete subdocuments
+                delete lItem.contacts;
+                delete rItem.contacts;
+                if (rItem && rItem["syncedAt"] < lItem["syncedAt"]) {
+                    console.log(collection, "elder on remote");
+                    const { $id, $permissions, $collectionId, $databaseId } = lItem, data = __rest(lItem, ["$id", "$permissions", "$collectionId", "$databaseId"]);
+                    yield masterDatabases.updateDocument(masterDatabaseId, collection, $id, data);
+                }
+                else if (rItem && rItem["syncedAt"] > lItem["syncedAt"]) {
+                    console.log(collection, "Newer on remote");
+                    const { $id, $permissions, $collectionId, $databaseId } = rItem, data = __rest(rItem, ["$id", "$permissions", "$collectionId", "$databaseId"]);
+                    yield clientDatabases.updateDocument(clientDatabaseId, collection, $id, data);
+                }
+                else if (rItem && rItem["syncedAt"] == lItem["syncedAt"]) {
+                    console.log(collection, "Alreadry synced");
+                }
+                else {
+                    console.log(collection, "Don't exist on remote");
+                    const { $id, $permissions, $collectionId, $databaseId } = lItem, data = __rest(lItem, ["$id", "$permissions", "$collectionId", "$databaseId"]);
+                    console.log(data);
+                    yield masterDatabases.createDocument(masterDatabaseId, collection, $id, data);
+                    if (syncedFiles) {
+                        yield sendImage($id);
+                    }
+                }
+            }));
+            return yield remoteData.documents
+                .filter((rItem) => !localData.documents.find((lItem) => lItem["$id"] === rItem["$id"]))
+                .forEach((rItem) => __awaiter(void 0, void 0, void 0, function* () {
+                console.log(collection, "Add new element from remote", rItem["$id"]);
                 const { $id, $permissions, $collectionId, $databaseId } = rItem, data = __rest(rItem, ["$id", "$permissions", "$collectionId", "$databaseId"]);
-                yield clientDatabases.updateDocument(clientDatabaseId, collection, $id, data);
-            }
-            else if (rItem && rItem["syncedAt"] == lItem["syncedAt"]) {
-                console.log(collection, "Alreadry synced");
-            }
-            else {
-                console.log(collection, "Don't exist on remote");
-                const { $id, $permissions, $collectionId, $databaseId } = lItem, data = __rest(lItem, ["$id", "$permissions", "$collectionId", "$databaseId"]);
-                console.log(data);
-                yield masterDatabases.createDocument(masterDatabaseId, collection, $id, data);
-            }
-        }));
-        return yield remoteData.documents
-            .filter((rItem) => !localData.documents.find((lItem) => lItem["$id"] === rItem["$id"]))
-            .forEach((rItem) => __awaiter(void 0, void 0, void 0, function* () {
-            console.log(collection, "Add new element from remote", rItem["$id"]);
-            const { $id, $permissions, $collectionId, $databaseId } = rItem, data = __rest(rItem, ["$id", "$permissions", "$collectionId", "$databaseId"]);
-            yield clientDatabases.createDocument(clientDatabaseId, collection, $id, data);
-        }));
-    });
-    const dataPromises = collections.map((collection) => __awaiter(void 0, void 0, void 0, function* () { return syncData(collection); }));
-    yield Promise.all(dataPromises);
+                yield clientDatabases.createDocument(clientDatabaseId, collection, $id, data);
+                if (syncedFiles) {
+                    yield receiveImage($id);
+                }
+            }));
+        });
+        const dataPromises = collections.map((collection) => __awaiter(void 0, void 0, void 0, function* () { return syncData(collection); }));
+        yield Promise.all(dataPromises);
+    }
+    catch (err) {
+        console.log('SYnc failed this time for: ' + err.message);
+    }
+});
+const sendImage = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    const image = yield image_schema_1.default.findById(id);
+    if (!image) {
+        return 'failed to find image';
+    }
+    return yield $post('save-image', image);
+});
+const receiveImage = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    const image = yield $get('copy-image', id);
+    if (!image) {
+        return console.log('failed to retrieve image');
+    }
+    return yield image_schema_1.default.create(image);
+});
+const $post = (path, image) => __awaiter(void 0, void 0, void 0, function* () {
+    const headers = {
+        'Content-Type': 'application/json',
+        // 'Authorization': 'Bearer ' +  await TokenManager.generate({ id: 0, role: 'super'})
+    };
+    // console.log(url)
+    try {
+        const { data } = yield axios_1.default.post(process.env.MASTER_IMAGE_HOST + path, image, { headers });
+        return data;
+    }
+    catch (err) {
+        console.log('error', err.message);
+    }
+});
+const $get = (path, id) => __awaiter(void 0, void 0, void 0, function* () {
+    const headers = {
+        'Content-Type': 'application/json',
+        // 'Authorization': 'Bearer ' + await TokenManager.generate({ id: 0, role: 'super'})
+    };
+    // console.log(url)
+    try {
+        const { data } = yield axios_1.default.get(process.env.MASTER_IMAGE_HOST + path, { headers, data: { id } });
+        return data;
+    }
+    catch (err) {
+        // console.log(err)
+    }
 });

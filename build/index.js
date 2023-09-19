@@ -17,6 +17,11 @@ const cors_1 = __importDefault(require("cors"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const node_appwrite_1 = require("node-appwrite");
 const sync_1 = require("./sync");
+const multer_1 = __importDefault(require("multer"));
+const fs_1 = __importDefault(require("fs"));
+// import path from 'path';
+const body_parser_1 = __importDefault(require("body-parser"));
+const image_schema_1 = __importDefault(require("./schemas/image.schema"));
 // 
 // Your secret API key
 dotenv_1.default.config();
@@ -26,6 +31,18 @@ app.use((0, cors_1.default)({
     origin: '*'
 }));
 const port = process.env.PORT;
+app.use(body_parser_1.default.urlencoded({ extended: true }));
+app.set("view engine", "ejs");
+// SET STORAGE
+const storage = multer_1.default.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './public/uploads');
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.fieldname + '-' + Date.now());
+    }
+});
+const upload = (0, multer_1.default)({ storage: storage });
 const client = new node_appwrite_1.Client()
     .setEndpoint(process.env.ENDPOINT || '') // Your Appwrite Endpoint
     .setProject(process.env.PROJECT_ID || '') // Your project ID
@@ -37,14 +54,14 @@ app.get('/', (req, res) => {
     res.send('TAL Backend api');
 });
 app.get('/agency', (req, res) => {
-    res.send({ id: process.env.PROJECT_ID });
+    res.send({ id: process.env.AGENCY_ID });
 });
 app.post('/user', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     console.log('called', req.body);
     try {
         const { collection, user } = req.body;
         const name = user.name ? user.name : user.firstName + " " + user.lastName;
-        const { $id } = yield users.create("unique()", user.email, user.phoneNumber, "password", name);
+        const { $id } = yield users.create("unique()", user.email, null, "password", name);
         user.syncedAt = new Date();
         yield database.createDocument(process.env.DB || 'test', collection, $id, user);
         res.status(200).json({
@@ -57,6 +74,41 @@ app.post('/user', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             err: err.message,
         });
     }
+}));
+app.get("/test", (req, res) => {
+    res.render("index");
+});
+app.post("/uploadphoto", upload.single('myImage'), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const img = fs_1.default.readFileSync(req.file.path);
+    const encode_img = img.toString('base64');
+    const final_img = {
+        name: req.file.path,
+        contentType: req.file.mimetype,
+        data: Buffer.from(encode_img, 'base64')
+    };
+    // console.log('final_img',final_img);
+    const image = yield image_schema_1.default.create(final_img);
+    // res.contentType(final_img.contentType);
+    res.status(200).json(image._id);
+}));
+app.get('/image/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.params.id;
+    console.log('id: ' + id);
+    const image = yield image_schema_1.default.findById(id);
+    res.contentType(image.contentType);
+    res.send(image.data);
+}));
+// Sync
+app.get('/copy-image/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.params.id;
+    console.log('id: ' + id);
+    const image = yield image_schema_1.default.findById(id);
+    res.status(200).json(image);
+}));
+app.post('/save-image', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const image = req.body;
+    yield image_schema_1.default.create(image);
+    res.status(200).json({ res: 'success' });
 }));
 app.listen(port, () => {
     console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
