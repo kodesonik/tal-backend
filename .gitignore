@@ -1,0 +1,8 @@
+node_modules/
+yarn.lock
+.env
+.env.dev
+appwrite/
+docker-compose.yml
+docker-compose.prod.yml
+docker-compose.dev.yml
