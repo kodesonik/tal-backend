@@ -132,10 +132,10 @@ const syncAgency = () => __awaiter(void 0, void 0, void 0, function* () {
                 else {
                     console.log(collection, "Don't exist on remote");
                     const { $id, $permissions, $collectionId, $databaseId } = lItem, data = __rest(lItem, ["$id", "$permissions", "$collectionId", "$databaseId"]);
-                    console.log(data);
+                    // console.log(data);
                     yield masterDatabases.createDocument(masterDatabaseId, collection, $id, data);
                     if (syncedFiles) {
-                        yield sendImage($id);
+                        yield sendImage(data.value);
                     }
                 }
             }));
@@ -143,10 +143,10 @@ const syncAgency = () => __awaiter(void 0, void 0, void 0, function* () {
                 .filter((rItem) => !localData.documents.find((lItem) => lItem["$id"] === rItem["$id"]))
                 .forEach((rItem) => __awaiter(void 0, void 0, void 0, function* () {
                 console.log(collection, "Add new element from remote", rItem["$id"]);
-                const { $id, $permissions, $collectionId, $databaseId } = rItem, data = __rest(rItem, ["$id", "$permissions", "$collectionId", "$databaseId"]);
+                const _a = rItem, { $id, $permissions, $collectionId, $databaseId } = _a, data = __rest(_a, ["$id", "$permissions", "$collectionId", "$databaseId"]);
                 yield clientDatabases.createDocument(clientDatabaseId, collection, $id, data);
                 if (syncedFiles) {
-                    yield receiveImage($id);
+                    yield receiveImage(data.value);
                 }
             }));
         });
@@ -166,6 +166,7 @@ const sendImage = (id) => __awaiter(void 0, void 0, void 0, function* () {
 });
 const receiveImage = (id) => __awaiter(void 0, void 0, void 0, function* () {
     const image = yield $get('copy-image', id);
+    console.log('image', image);
     if (!image) {
         return console.log('failed to retrieve image');
     }

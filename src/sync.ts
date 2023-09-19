@@ -168,7 +168,7 @@ const syncAgency = async () => {
           console.log(collection, "Don't exist on remote");
           const { $id, $permissions, $collectionId, $databaseId, ...data } =
             lItem;
-          console.log(data);
+          // console.log(data);
           await masterDatabases.createDocument(
             masterDatabaseId,
             collection,
@@ -176,7 +176,7 @@ const syncAgency = async () => {
             data
           );
           if (syncedFiles) {
-            await sendImage($id)
+            await sendImage(data.value)
           }
         }
       });
@@ -189,7 +189,7 @@ const syncAgency = async () => {
         .forEach(async (rItem) => {
           console.log(collection, "Add new element from remote", rItem["$id"]);
           const { $id, $permissions, $collectionId, $databaseId, ...data } =
-            rItem;
+            rItem as any;
           await clientDatabases.createDocument(
             clientDatabaseId,
             collection,
@@ -197,7 +197,7 @@ const syncAgency = async () => {
             data
           );
           if (syncedFiles) {
-            await receiveImage($id)
+            await receiveImage(data.value)
           }
         });
     };
@@ -223,6 +223,8 @@ const sendImage = async (id: string) => {
 
 const receiveImage = async (id: string) => {
   const image = await $get('copy-image', id)
+  console.log('image', image)
+  
   if (!image) {
     return console.log('failed to retrieve image')
   }
