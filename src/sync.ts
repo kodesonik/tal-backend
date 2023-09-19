@@ -140,7 +140,7 @@ const syncAgency = async () => {
 
         // delete subdocuments
         delete lItem.contacts
-        delete rItem.contacts
+       if (rItem) delete rItem.contacts
 
         if (rItem && rItem["syncedAt"] < lItem["syncedAt"]) {
           console.log(collection, "elder on remote");

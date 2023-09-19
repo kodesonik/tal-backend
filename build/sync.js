@@ -114,7 +114,8 @@ const syncAgency = () => __awaiter(void 0, void 0, void 0, function* () {
                 const rItem = remoteData.documents.find((rItem) => rItem["$id"] === lItem["$id"]);
                 // delete subdocuments
                 delete lItem.contacts;
-                delete rItem.contacts;
+                if (rItem)
+                    delete rItem.contacts;
                 if (rItem && rItem["syncedAt"] < lItem["syncedAt"]) {
                     console.log(collection, "elder on remote");
                     const { $id, $permissions, $collectionId, $databaseId } = lItem, data = __rest(lItem, ["$id", "$permissions", "$collectionId", "$databaseId"]);
