@@ -34,24 +34,25 @@ const syncJob = () => {
     }));
 };
 exports.syncJob = syncJob;
+const MASTER_IMAGE_HOST = 'http://141.148.237.51:' + process.env.PORT + '/';
 const collections = [
-    "admin",
-    "country",
-    "town",
-    "agency",
-    "employee",
-    "partner",
-    "store",
-    "customer",
-    "vehicleType",
-    "vehicle",
-    "package",
-    "payment",
-    "entrance",
-    "delivery",
-    "exit",
+    // "admin",
+    // "country",
+    // "town",
+    // "agency",
+    // "employee",
+    // "partner",
+    // "store",
+    // "customer",
+    // "vehicleType",
+    // "vehicle",
+    // "package",
+    // "payment",
+    // "entrance",
+    // "delivery",
+    // "exit",
     "file",
-    "contact"
+    // "contact"
 ];
 const syncAgency = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -90,20 +91,40 @@ const syncAgency = () => __awaiter(void 0, void 0, void 0, function* () {
             yield Promise.all(promises);
         }
         else if (remoteUsers.total && localUsers.total) {
-            yield remoteUsers.users.map((user) => __awaiter(void 0, void 0, void 0, function* () {
-                const { $id } = user, data = __rest(user, ["$id"]);
-                const localUser = yield localUsers.users.find((user) => user["$id"] === $id);
-                if (!localUser) {
-                    return yield promises.push(clientUsers.create($id, data.email, data.phone, "password", data.name));
-                }
-            }));
-            yield localUsers.users.map((user) => __awaiter(void 0, void 0, void 0, function* () {
-                const { $id } = user, data = __rest(user, ["$id"]);
-                const remoteUser = yield remoteUsers.users.find((user) => user["$id"] === $id);
-                if (!remoteUser) {
-                    return yield promises.push(masterUsers.create($id, data.email, data.phone, "password", data.name));
-                }
-            }));
+            // await remoteUsers.users.map(async (user) => {
+            //   const { $id, ...data } = user;
+            //   const localUser = await localUsers.users.find(
+            //     (user) => user["$id"] === $id
+            //   );
+            //   if (!localUser) {
+            //     return await promises.push(
+            //       clientUsers.create(
+            //         $id,
+            //         data.email,
+            //         data.phone,
+            //         "password",
+            //         data.name
+            //       )
+            //     );
+            //   }
+            // });
+            // await localUsers.users.map(async (user) => {
+            //   const { $id, ...data } = user;
+            //   const remoteUser = await remoteUsers.users.find(
+            //     (user) => user["$id"] === $id
+            //   );
+            //   if (!remoteUser) {
+            //     return await promises.push(
+            //       masterUsers.create(
+            //         $id,
+            //         data.email,
+            //         data.phone,
+            //         "password",
+            //         data.name
+            //       )
+            //     );
+            //   }
+            // });
         }
         // Data Sync
         const syncData = (collection) => __awaiter(void 0, void 0, void 0, function* () {
@@ -135,6 +156,7 @@ const syncAgency = () => __awaiter(void 0, void 0, void 0, function* () {
                     // console.log(data);
                     yield masterDatabases.createDocument(masterDatabaseId, collection, $id, data);
                     if (syncedFiles) {
+                        console.log('sending images...', data.value);
                         yield sendImage(data.value);
                     }
                 }
@@ -146,6 +168,7 @@ const syncAgency = () => __awaiter(void 0, void 0, void 0, function* () {
                 const _a = rItem, { $id, $permissions, $collectionId, $databaseId } = _a, data = __rest(_a, ["$id", "$permissions", "$collectionId", "$databaseId"]);
                 yield clientDatabases.createDocument(clientDatabaseId, collection, $id, data);
                 if (syncedFiles) {
+                    console.log('receiveing images...', data.value);
                     yield receiveImage(data.value);
                 }
             }));
@@ -159,6 +182,7 @@ const syncAgency = () => __awaiter(void 0, void 0, void 0, function* () {
 });
 const sendImage = (id) => __awaiter(void 0, void 0, void 0, function* () {
     const image = yield image_schema_1.default.findById(id);
+    console.log('image', image);
     if (!image) {
         return 'failed to find image';
     }
@@ -179,7 +203,7 @@ const $post = (path, image) => __awaiter(void 0, void 0, void 0, function* () {
     };
     // console.log(url)
     try {
-        const { data } = yield axios_1.default.post(process.env.MASTER_IMAGE_HOST + path, image, { headers });
+        const { data } = yield axios_1.default.post(MASTER_IMAGE_HOST + path, image, { headers });
         return data;
     }
     catch (err) {
@@ -193,7 +217,8 @@ const $get = (path, id) => __awaiter(void 0, void 0, void 0, function* () {
     };
     // console.log(url)
     try {
-        const { data } = yield axios_1.default.get(process.env.MASTER_IMAGE_HOST + path, { headers, data: { id } });
+        const { data } = yield axios_1.default.get(MASTER_IMAGE_HOST + path, { headers, data: { id } });
+        console.log('data');
         return data;
     }
     catch (err) {

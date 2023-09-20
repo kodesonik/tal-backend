@@ -26,7 +26,7 @@ const image_schema_1 = __importDefault(require("./schemas/image.schema"));
 // Your secret API key
 dotenv_1.default.config();
 const app = (0, express_1.default)();
-app.use(express_1.default.json());
+app.use(express_1.default.json({ limit: "10mb" }));
 app.use((0, cors_1.default)({
     origin: '*'
 }));
