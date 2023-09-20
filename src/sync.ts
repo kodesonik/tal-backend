@@ -8,25 +8,25 @@ export const syncJob = () => {
     await syncAgency()
   });
 }
-
+const MASTER_IMAGE_HOST = 'http://141.148.237.51:' + process.env.PORT + '/'
 const collections = [
-  "admin",
-  "country",
-  "town",
-  "agency",
-  "employee",
-  "partner",
-  "store",
-  "customer",
-  "vehicleType",
-  "vehicle",
-  "package",
-  "payment",
-  "entrance",
-  "delivery",
-  "exit",
+  // "admin",
+  // "country",
+  // "town",
+  // "agency",
+  // "employee",
+  // "partner",
+  // "store",
+  // "customer",
+  // "vehicleType",
+  // "vehicle",
+  // "package",
+  // "payment",
+  // "entrance",
+  // "delivery",
+  // "exit",
   "file",
-  "contact"
+  // "contact"
 ];
 
 const syncAgency = async () => {
@@ -83,40 +83,40 @@ const syncAgency = async () => {
       });
       await Promise.all(promises);
     } else if (remoteUsers.total && localUsers.total) {
-      await remoteUsers.users.map(async (user) => {
-        const { $id, ...data } = user;
-        const localUser = await localUsers.users.find(
-          (user) => user["$id"] === $id
-        );
-        if (!localUser) {
-          return await promises.push(
-            clientUsers.create(
-              $id,
-              data.email,
-              data.phone,
-              "password",
-              data.name
-            )
-          );
-        }
-      });
-      await localUsers.users.map(async (user) => {
-        const { $id, ...data } = user;
-        const remoteUser = await remoteUsers.users.find(
-          (user) => user["$id"] === $id
-        );
-        if (!remoteUser) {
-          return await promises.push(
-            masterUsers.create(
-              $id,
-              data.email,
-              data.phone,
-              "password",
-              data.name
-            )
-          );
-        }
-      });
+      // await remoteUsers.users.map(async (user) => {
+      //   const { $id, ...data } = user;
+      //   const localUser = await localUsers.users.find(
+      //     (user) => user["$id"] === $id
+      //   );
+      //   if (!localUser) {
+      //     return await promises.push(
+      //       clientUsers.create(
+      //         $id,
+      //         data.email,
+      //         data.phone,
+      //         "password",
+      //         data.name
+      //       )
+      //     );
+      //   }
+      // });
+      // await localUsers.users.map(async (user) => {
+      //   const { $id, ...data } = user;
+      //   const remoteUser = await remoteUsers.users.find(
+      //     (user) => user["$id"] === $id
+      //   );
+      //   if (!remoteUser) {
+      //     return await promises.push(
+      //       masterUsers.create(
+      //         $id,
+      //         data.email,
+      //         data.phone,
+      //         "password",
+      //         data.name
+      //       )
+      //     );
+      //   }
+      // });
     }
 
     // Data Sync
@@ -176,6 +176,7 @@ const syncAgency = async () => {
             data
           );
           if (syncedFiles) {
+            console.log('sending images...', data.value);
             await sendImage(data.value)
           }
         }
@@ -197,6 +198,7 @@ const syncAgency = async () => {
             data
           );
           if (syncedFiles) {
+            console.log('receiveing images...', data.value);
             await receiveImage(data.value)
           }
         });
@@ -214,6 +216,7 @@ const syncAgency = async () => {
 
 const sendImage = async (id: string) => {
   const image = await imageModel.findById(id)
+  console.log('image', image)
   if (!image) {
     return 'failed to find image'
   }
@@ -237,7 +240,7 @@ const $post = async (path: string, image: any) => {
   }
   // console.log(url)
   try {
-    const { data } = await axios.post(process.env.MASTER_IMAGE_HOST + path, image, { headers })
+    const { data } = await axios.post(MASTER_IMAGE_HOST + path, image, { headers })
     return data
   } catch (err) {
     console.log('error', err.message)
@@ -253,7 +256,8 @@ const $get = async (path: string, id: string) => {
   }
   // console.log(url)
   try {
-    const { data } = await axios.get(process.env.MASTER_IMAGE_HOST + path, { headers, data: { id } })
+    const { data } = await axios.get(MASTER_IMAGE_HOST + path, { headers, data: { id } })
+    console.log('data')
     return data
   } catch (err) {
     // console.log(err)
