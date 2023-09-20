@@ -36,23 +36,23 @@ const syncJob = () => {
 exports.syncJob = syncJob;
 const MASTER_IMAGE_HOST = 'http://141.148.237.51:' + process.env.PORT + '/';
 const collections = [
-    // "admin",
-    // "country",
-    // "town",
-    // "agency",
-    // "employee",
-    // "partner",
-    // "store",
-    // "customer",
-    // "vehicleType",
-    // "vehicle",
-    // "package",
-    // "payment",
-    // "entrance",
-    // "delivery",
-    // "exit",
+    "admin",
+    "country",
+    "town",
+    "agency",
+    "employee",
+    "partner",
+    "store",
+    "customer",
+    "vehicleType",
+    "vehicle",
+    "package",
+    "payment",
+    "entrance",
+    "delivery",
+    "exit",
     "file",
-    // "contact"
+    "contact"
 ];
 const syncAgency = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -91,40 +91,20 @@ const syncAgency = () => __awaiter(void 0, void 0, void 0, function* () {
             yield Promise.all(promises);
         }
         else if (remoteUsers.total && localUsers.total) {
-            // await remoteUsers.users.map(async (user) => {
-            //   const { $id, ...data } = user;
-            //   const localUser = await localUsers.users.find(
-            //     (user) => user["$id"] === $id
-            //   );
-            //   if (!localUser) {
-            //     return await promises.push(
-            //       clientUsers.create(
-            //         $id,
-            //         data.email,
-            //         data.phone,
-            //         "password",
-            //         data.name
-            //       )
-            //     );
-            //   }
-            // });
-            // await localUsers.users.map(async (user) => {
-            //   const { $id, ...data } = user;
-            //   const remoteUser = await remoteUsers.users.find(
-            //     (user) => user["$id"] === $id
-            //   );
-            //   if (!remoteUser) {
-            //     return await promises.push(
-            //       masterUsers.create(
-            //         $id,
-            //         data.email,
-            //         data.phone,
-            //         "password",
-            //         data.name
-            //       )
-            //     );
-            //   }
-            // });
+            yield remoteUsers.users.map((user) => __awaiter(void 0, void 0, void 0, function* () {
+                const { $id } = user, data = __rest(user, ["$id"]);
+                const localUser = yield localUsers.users.find((user) => user["$id"] === $id);
+                if (!localUser) {
+                    return yield promises.push(clientUsers.create($id, data.email, data.phone, "password", data.name));
+                }
+            }));
+            yield localUsers.users.map((user) => __awaiter(void 0, void 0, void 0, function* () {
+                const { $id } = user, data = __rest(user, ["$id"]);
+                const remoteUser = yield remoteUsers.users.find((user) => user["$id"] === $id);
+                if (!remoteUser) {
+                    return yield promises.push(masterUsers.create($id, data.email, data.phone, "password", data.name));
+                }
+            }));
         }
         // Data Sync
         const syncData = (collection) => __awaiter(void 0, void 0, void 0, function* () {
@@ -182,9 +162,9 @@ const syncAgency = () => __awaiter(void 0, void 0, void 0, function* () {
 });
 const sendImage = (id) => __awaiter(void 0, void 0, void 0, function* () {
     const image = yield image_schema_1.default.findById(id);
-    console.log('image', image);
+    // console.log('image', image)
     if (!image) {
-        return 'failed to find image';
+        return console.log('failed to find image');
     }
     return yield $post('save-image', image);
 });
