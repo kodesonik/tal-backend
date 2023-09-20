@@ -102,7 +102,7 @@ const syncAgency = async () => {
       });
       await localUsers.users.map(async (user) => {
         const { $id, ...data } = user;
-        const remoteUser = await localUsers.users.find(
+        const remoteUser = await remoteUsers.users.find(
           (user) => user["$id"] === $id
         );
         if (!remoteUser) {
@@ -211,7 +211,6 @@ const syncAgency = async () => {
     console.log('SYnc failed this time for: ' + err.message)
   }
 }
-
 
 const sendImage = async (id: string) => {
   const image = await imageModel.findById(id)

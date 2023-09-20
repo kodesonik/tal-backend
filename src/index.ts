@@ -103,6 +103,7 @@ app.get('/image/:id', async (req, res) => {
   const id = req.params.id;
   console.log('id: ' + id);
   const image = await imageModel.findById(id);
+  if (!image) res.send()
   res.contentType(image.contentType);
   res.send(image.data);
 })
