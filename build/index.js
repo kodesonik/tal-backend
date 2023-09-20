@@ -95,6 +95,8 @@ app.get('/image/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* 
     const id = req.params.id;
     console.log('id: ' + id);
     const image = yield image_schema_1.default.findById(id);
+    if (!image)
+        res.send();
     res.contentType(image.contentType);
     res.send(image.data);
 }));

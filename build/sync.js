@@ -99,7 +99,7 @@ const syncAgency = () => __awaiter(void 0, void 0, void 0, function* () {
             }));
             yield localUsers.users.map((user) => __awaiter(void 0, void 0, void 0, function* () {
                 const { $id } = user, data = __rest(user, ["$id"]);
-                const remoteUser = yield localUsers.users.find((user) => user["$id"] === $id);
+                const remoteUser = yield remoteUsers.users.find((user) => user["$id"] === $id);
                 if (!remoteUser) {
                     return yield promises.push(masterUsers.create($id, data.email, data.phone, "password", data.name));
                 }
