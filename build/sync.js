@@ -79,14 +79,14 @@ const syncAgency = () => __awaiter(void 0, void 0, void 0, function* () {
         else if (remoteUsers.total && !localUsers.total) {
             remoteUsers.users.map((user) => __awaiter(void 0, void 0, void 0, function* () {
                 const { $id } = user, data = __rest(user, ["$id"]);
-                return yield promises.push(clientUsers.create($id, data.email, '', "password", data.name));
+                return yield promises.push(clientUsers.create($id, data.email, data.phone || null, "password", data.name));
             }));
             yield Promise.all(promises);
         }
         else if (!remoteUsers.total && localUsers.total) {
             localUsers.users.map((user) => __awaiter(void 0, void 0, void 0, function* () {
                 const { $id } = user, data = __rest(user, ["$id"]);
-                return yield promises.push(masterUsers.create($id, data.email, '', "password", data.name));
+                return yield promises.push(masterUsers.create($id, data.email, data.phone || null, "password", data.name));
             }));
             yield Promise.all(promises);
         }
@@ -95,14 +95,14 @@ const syncAgency = () => __awaiter(void 0, void 0, void 0, function* () {
                 const { $id } = user, data = __rest(user, ["$id"]);
                 const localUser = yield localUsers.users.find((user) => user["$id"] === $id);
                 if (!localUser) {
-                    return yield promises.push(clientUsers.create($id, data.email, '', "password", data.name));
+                    return yield promises.push(clientUsers.create($id, data.email, data.phone || null, "password", data.name));
                 }
             }));
             yield localUsers.users.map((user) => __awaiter(void 0, void 0, void 0, function* () {
                 const { $id } = user, data = __rest(user, ["$id"]);
                 const remoteUser = yield remoteUsers.users.find((user) => user["$id"] === $id);
                 if (!remoteUser) {
-                    return yield promises.push(masterUsers.create($id, data.email, '', "password", data.name));
+                    return yield promises.push(masterUsers.create($id, data.email, data.phone || null, "password", data.name));
                 }
             }));
         }

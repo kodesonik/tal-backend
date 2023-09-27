@@ -61,7 +61,7 @@ const syncAgency = async () => {
           clientUsers.create(
             $id,
             data.email,
-            '',
+            data.phone || null,
             "password",
             data.name
           )
@@ -75,7 +75,7 @@ const syncAgency = async () => {
           masterUsers.create(
             $id,
             data.email,
-            '',
+            data.phone || null,
             "password",
             data.name
           )
@@ -93,7 +93,7 @@ const syncAgency = async () => {
             clientUsers.create(
               $id,
               data.email,
-              '',
+              data.phone || null,
               "password",
               data.name
             )
@@ -110,7 +110,7 @@ const syncAgency = async () => {
             masterUsers.create(
               $id,
               data.email,
-              '',
+              data.phone || null,
               "password",
               data.name
             )
