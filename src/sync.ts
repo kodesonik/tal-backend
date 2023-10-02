@@ -163,7 +163,7 @@ const syncAgency = async () => {
             data
           );
         } else if (rItem && rItem["syncedAt"] == lItem["syncedAt"]) {
-          console.log(collection, "Alreadry synced");
+          // console.log(collection, "Alreadry synced");
         } else {
           console.log(collection, "Don't exist on remote");
           const { $id, $permissions, $collectionId, $databaseId, ...data } =

@@ -128,7 +128,7 @@ const syncAgency = () => __awaiter(void 0, void 0, void 0, function* () {
                     yield clientDatabases.updateDocument(clientDatabaseId, collection, $id, data);
                 }
                 else if (rItem && rItem["syncedAt"] == lItem["syncedAt"]) {
-                    console.log(collection, "Alreadry synced");
+                    // console.log(collection, "Alreadry synced");
                 }
                 else {
                     console.log(collection, "Don't exist on remote");
