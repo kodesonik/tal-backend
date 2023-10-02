@@ -257,9 +257,9 @@ const $get = async (path: string, id: string) => {
   // console.log(url)
   try {
     const { data } = await axios.get(MASTER_IMAGE_HOST + path, { headers, data: { id } })
-    console.log('data')
+    console.log('recieved', data)
     return data
   } catch (err) {
-    // console.log(err)
+    console.log('failed for', err.message)
   }
 }

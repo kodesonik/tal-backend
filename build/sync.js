@@ -198,10 +198,10 @@ const $get = (path, id) => __awaiter(void 0, void 0, void 0, function* () {
     // console.log(url)
     try {
         const { data } = yield axios_1.default.get(MASTER_IMAGE_HOST + path, { headers, data: { id } });
-        console.log('data');
+        console.log('recieved', data);
         return data;
     }
     catch (err) {
-        // console.log(err)
+        console.log('failed for', err.message);
     }
 });
