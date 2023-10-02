@@ -197,7 +197,7 @@ const $get = (path, id) => __awaiter(void 0, void 0, void 0, function* () {
     };
     // console.log(url)
     try {
-        const res = yield axios_1.default.get(MASTER_IMAGE_HOST + path, { headers, data: { id } });
+        const res = yield axios_1.default.get(MASTER_IMAGE_HOST + path + '/' + id, { headers });
         console.log('recieved res', res);
         console.log('recieved data', res.data);
         return res.data;
