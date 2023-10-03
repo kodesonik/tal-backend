@@ -118,8 +118,11 @@ app.get('/package/:id', (req, res) => __awaiter(void 0, void 0, void 0, function
     const pkg = yield database.getDocument(process.env.DB || 'test', 'package', id);
     if (!pkg)
         return res.status(503).json({ message: 'Colis non trouvé' });
-    const location = yield database.getDocument(process.env.DB || 'test', 'town', pkg.townId);
-    res.status(200).json({ package: pkg, location: location });
+    if (!pkg.deliveryId)
+        return res.status(200).json({ message: 'Colis non expédié pour le moment!' });
+    const delivery = yield database.getDocument(process.env.DB || 'test', 'delivery', pkg.deliveryId);
+    const location = yield database.getDocument(process.env.DB || 'test', 'town', delivery.locationTownId);
+    res.status(200).json({ package: pkg, delivery, location });
 }));
 app.listen(port, () => {
     console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
