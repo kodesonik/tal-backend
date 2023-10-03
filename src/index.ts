@@ -9,6 +9,7 @@ import fs from 'fs';
 import bodyParser from 'body-parser';
 
 import imageModel from './schemas/image.schema';
+
 // 
 // Your secret API key
 dotenv.config();
@@ -121,6 +122,15 @@ app.post('/save-image', async (req, res) => {
   const image = req.body;
   await imageModel.create(image);
   res.status(200).json({ res: 'success' });
+})
+
+app.get('/package/:id', async (req, res) => {
+  const id = req.params.id;
+  console.log('id: ' + id);
+  const pkg: any = await database.getDocument(process.env.DB || 'test', 'package', id);
+  if (!pkg) return res.status(503).json({ message: 'Colis non trouvé'})
+  const location = await database.getDocument(process.env.DB || 'test', 'town', pkg.townId);
+  res.status(200).json({ package: pkg, location: location })
 })
 
 app.listen(port, () => {

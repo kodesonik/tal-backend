@@ -112,6 +112,15 @@ app.post('/save-image', (req, res) => __awaiter(void 0, void 0, void 0, function
     yield image_schema_1.default.create(image);
     res.status(200).json({ res: 'success' });
 }));
+app.get('/package/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.params.id;
+    console.log('id: ' + id);
+    const pkg = yield database.getDocument(process.env.DB || 'test', 'package', id);
+    if (!pkg)
+        return res.status(503).json({ message: 'Colis non trouvé' });
+    const location = yield database.getDocument(process.env.DB || 'test', 'town', pkg.townId);
+    res.status(200).json({ package: pkg, location: location });
+}));
 app.listen(port, () => {
     console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
     if (+process.env.SYNC)
